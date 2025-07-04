@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notebook Flipbook</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at top left, #0ff, #000);
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: #0ff;
+    }
+
+    .book {
+      position: relative;
+      width: 20rem;
+      max-width: 700px;
+      height: 30rem;
+      perspective: 2000px;
+      box-shadow: 0 0 30px #0ff;
+      border-radius: 8px;
+      margin-top: 20px;
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    .spiral {
+      position: absolute;
+      top: 20px;
+      left: -15px;
+      width: 10px;
+      height: calc(100% - 40px);
+      background: repeating-linear-gradient(#0ff 0 5px, transparent 5px 10px);
+      z-index: 10;
+      border-left: 5px solid #0ff;
+      border-right: 5px solid #0ff;
+      border-radius: 5px;
+    }
+
+    .page {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      padding: 40px 30px;
+      transform-origin: left;
+      transform-style: preserve-3d;
+      transition: transform 1s ease, z-index 0.5s;
+      border-left: 2px solid #0ff;
+      border-right: 2px solid #0ff;
+      overflow-y: auto;
+      border-radius: 4px;
+      box-shadow: inset 0 0 15px #0ff;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: pageEnter 0.6s ease-in-out;
+    }
+
+    .page.flipped {
+      transform: rotateY(-180deg);
+      z-index: 0 !important;
+    }
+
+    @keyframes pageEnter {
+      from { transform: rotateY(90deg); opacity: 0; }
+      to { transform: rotateY(0); opacity: 1; }
+    }
+
+    .cover {
+      background: linear-gradient(145deg, #001f1f, #003333);
+      color: #0ff;
+      font-size: 1.8rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 40px #0ff;
+    }
+
+    .page-content {
+      white-space: pre-wrap;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #0ff;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease-in-out;
+    }
+
+    .page.show-content .page-content {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .page-number {
+      text-align: right;
+      font-size: 0.9rem;
+      color: #0ff;
+      margin-top: 10px;
+    }
+
+    .nav-buttons {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .nav-buttons button {
+      padding: 8px 14px;
+      margin: 0 5px;
+      border: none;
+      background: #0ff;
+      color: #000;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .nav-buttons button:hover {
+      background: #00cccc;
+    }
+
+    @media (max-width: 768px) {
+      .book {
+        width: 90vw;
+        height: 70vh;
+      }
+      .page {
+        padding: 20px 15px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="book" id="book">
+    <div class="spiral"></div>
+
+    <!-- Cover Page -->
+    <div class="page cover" style="z-index: 6;" onclick="flipNext()">My Notebook</div>
+
+    <!-- Pages -->
+    <div class="page" style="z-index: 5;" onclick="flipPage(this)">
+      <div class="page-content">Welcome to the flipbook. This is a sample note.
+- Realistic page turn
+- Notebook style ruled pages
+- Responsive design</div>
+      <div class="page-number">Page 1</div>
+    </div>
+
+    <div class="page" style="z-index: 4;" onclick="flipPage(this)">
+      <div class="page-content">Page 2 Content:
+This flipbook uses simple HTML, CSS, and JavaScript.
+Swipe or tap to flip!</div>
+      <div class="page-number">Page 2</div>
+    </div>
+
+    <div class="page" style="z-index: 3;" onclick="flipPage(this)">
+      <div class="page-content">Page 3:
+You can customize this to include your own notes, diary entries, etc.</div>
+      <div class="page-number">Page 3</div>
+    </div>
+
+    <div class="page" style="z-index: 2;" onclick="flipPage(this)">
+      <div class="page-content">Page 4:
+Try printing this notebook using the export button!</div>
+      <div class="page-number">Page 4</div>
+    </div>
+
+    <div class="page" style="z-index: 1;" onclick="flipPage(this)">
+      <div class="page-content">Thank you for viewing the notebook!
+Made with ❤️ in HTML, CSS & JS</div>
+      <div class="page-number">Page 5</div>
+    </div>
+  </div>
+
+  <!-- Navigation Buttons Outside Book -->
+  <div class="nav-buttons">
+    <button onclick="flipPrev()">Prev</button>
+    <button onclick="flipNext()">Next</button>
+    <button onclick="resetFlipbook()">Reset</button>
+  </div>
+
+  <script>
+    let currentPage = 0;
+    const pages = document.querySelectorAll('.page');
+
+    function typewriterEffect(el) {
+      if (!el) return;
+      const text = el.getAttribute('data-text') || el.textContent;
+      el.setAttribute('data-text', text);
+      el.textContent = '';
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < text.length) {
+          el.textContent += text[i];
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 20);
+    }
+
+    function flipNext() {
+      if (currentPage < pages.length - 1) {
+        pages[currentPage].classList.add('flipped');
+        setTimeout(() => {
+          pages[currentPage].classList.add('show-content');
+          typewriterEffect(pages[currentPage].querySelector('.page-content'));
+        }, 500);
+        currentPage++;
+      }
+    }
+
+    function flipPrev() {
+      if (currentPage > 0) {
+        currentPage--;
+        pages[currentPage].classList.remove('flipped');
+        pages[currentPage].classList.remove('show-content');
+        setTimeout(() => {
+          pages[currentPage].classList.add('show-content');
+          typewriterEffect(pages[currentPage].querySelector('.page-content'));
+        }, 500);
+      }
+    }
+
+    function flipPage(el) {
+      const index = Array.from(pages).indexOf(el);
+      if (index <= currentPage) {
+        for (let i = currentPage; i >= index; i--) {
+          pages[i].classList.remove('flipped', 'show-content');
+        }
+        setTimeout(() => {
+          const content = pages[index].querySelector('.page-content');
+          if (content) {
+            pages[index].classList.add('show-content');
+            typewriterEffect(content);
+          }
+        }, 500);
+      } else {
+        for (let i = currentPage + 1; i <= index; i++) {
+          pages[i - 1].classList.add('flipped');
+          setTimeout(((p) => () => {
+            const content = p.querySelector('.page-content');
+            if (content) {
+              p.classList.add('show-content');
+              typewriterEffect(content);
+            }
+          })(pages[i - 1]), 500);
+        }
+      }
+      currentPage = index;
+    }
+
+    function resetFlipbook() {
+      pages.forEach((page) => {
+        page.classList.remove('flipped', 'show-content');
+      });
+      currentPage = 0;
+    }
+
+    // Swipe Support
+    let startX = 0;
+    document.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+    document.addEventListener('touchend', e => {
+      const endX = e.changedTouches[0].clientX;
+      const diffX = endX - startX;
+      if (diffX > 50) flipPrev();
+      if (diffX < -50) flipNext();
+    });
+
+    // Initial animation
+    window.addEventListener('DOMContentLoaded', () => {
+      if (pages[1]) {
+        pages[1].classList.add('show-content');
+        const content = pages[1].querySelector('.page-content');
+        if (content) typewriterEffect(content);
+      }
+    });
+  </script>
+</body>
+</html>
